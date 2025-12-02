@@ -1,4 +1,4 @@
-import { throwErrorOnAssertion, getFileByLinesSync, sumArray } from '../shared/utils';
+import { getFileByLinesSync } from '../shared/utils';
 
 export function part1(rotations: string[]): number {
   let position = 50;
@@ -74,6 +74,3 @@ function main(): void {
 }
 
 main();
-
-// TODO: 5984 is too high
-// 5502 is too low
