@@ -47,7 +47,7 @@ export function createSymbolToCoordinatesMap(yxMap: string[][], symbolsToIgnore 
 }
 
 export function sumArray(numArray: number[]): number {
-  return numArray.reduce((prev, curr) => prev + curr);
+  return numArray.reduce((prev, curr) => prev + curr, 0);
 }
 
 export function throwErrorOnAssertion(assertedValue: boolean, assertedCondition = ''): void {
@@ -75,36 +75,29 @@ export interface ThreeDCoordinate {
   z: number;
 }
 
-
 /**
  * Graph with vertex type identifier V and connections to each V of type V[]
  * Example: string means we identify the vertices as strings and the connections to the vertices with the string[]
  */
 export class Graph<V extends string | number | symbol> {
-
-
-  constructor(private connections: Record<V, V[]> = {} as Record<V, V[]>) {
-  }
+  constructor(private connections: Record<V, V[]> = {} as Record<V, V[]>) {}
 
   addConnection(start: V, end: V): void {
-    if(!this.connections[start]) {
+    if (!this.connections[start]) {
       this.connections[start] = [];
     }
     this.connections[start].push(end);
-    if(!this.connections[end]) {
+    if (!this.connections[end]) {
       this.connections[end] = [];
     }
     this.connections[end].push(start);
-
   }
 
-  getConnectionsToVertex(vertex: V): V[] | undefined{
+  getConnectionsToVertex(vertex: V): V[] | undefined {
     return this.connections[vertex];
   }
-
 
   getVertices(): string[] {
     return Object.keys(this.connections);
   }
-
 }
