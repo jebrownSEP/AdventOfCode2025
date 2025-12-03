@@ -64,7 +64,39 @@ export function part1(banks: number[][]): number {
   return sumArray(maxJoltages);
 }
 
-// export function part2(ranges: string[]): number {}
+export function part2(banks: number[][]): number {
+  const maxJoltages: number[] = [];
+
+  banks.forEach((bank) => {
+    let indexOfCurrentBattery = -1;
+
+    const currentBankJoltage: number[] = [];
+    for (let i = 11; i >= 0; i--) {
+      let currentBattery = -1;
+      const tempIndex = indexOfCurrentBattery;
+      for (let j = tempIndex + 1; j < bank.length - i; j++) {
+        if (bank[j] > currentBattery) {
+          currentBattery = bank[j];
+          indexOfCurrentBattery = j;
+        }
+      }
+
+      if (currentBattery === -1) {
+        throw new Error('invalid battery ' + i + bank[indexOfCurrentBattery]);
+      }
+      currentBankJoltage.push(currentBattery);
+    }
+
+    maxJoltages.push(+currentBankJoltage.join(''));
+  });
+
+  if (maxJoltages.length !== banks.length) {
+    throw new Error('Invalid lengths');
+  }
+
+  console.info(maxJoltages);
+  return sumArray(maxJoltages);
+}
 
 function main(): void {
   // const lines = getFileByLinesSync('./day3/simpleInput.txt');
@@ -72,8 +104,8 @@ function main(): void {
 
   const banks = lines.map((line) => line.split('').map((val) => +val));
 
-  console.info(part1(banks));
-  // console.info(part2(banks));
+  // console.info(part1(banks));
+  console.info(part2(banks));
 }
 
 main();
