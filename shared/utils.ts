@@ -14,7 +14,7 @@ export function create2DGridFromLines(lines: string[], separator: string): strin
 
 /**
  *
- * Takes yxMap and returns an xyMap; requires a sqaure map as written
+ * Takes yxMap and returns an xyMap; requires a sqare map as written
  */
 export function invert2DGrid(yxMap: string[][]): string[][] {
   const xyMap: string[][] = [];
@@ -26,6 +26,54 @@ export function invert2DGrid(yxMap: string[][]): string[][] {
   }
 
   return xyMap;
+}
+
+//  This "should" work with xy or yxGrid, but the comments assume xyGrid
+export function get8AdjacentCoordinates(xyGrid: string[][], coordinate: Coordinate): CoordinateWithValue[] {
+  const coordinates: CoordinateWithValue[] = [];
+  const { x, y } = coordinate;
+
+  if (y > 0) {
+    // top
+    coordinates.push({ value: xyGrid[x][y - 1], x: x, y: y - 1 });
+
+    if (x > 0) {
+      // top left
+      coordinates.push({ value: xyGrid[x - 1][y - 1], x: x - 1, y: y - 1 });
+    }
+
+    if (x < xyGrid.length - 1) {
+      // top right
+      coordinates.push({ value: xyGrid[x + 1][y - 1], x: x + 1, y: y - 1 });
+    }
+  }
+
+  if (x > 0) {
+    // left
+    coordinates.push({ value: xyGrid[x - 1][y], x: x - 1, y: y });
+  }
+
+  if (x < xyGrid.length - 1) {
+    // right
+    coordinates.push({ value: xyGrid[x + 1][y], x: x + 1, y: y });
+  }
+
+  if (y < xyGrid[0].length - 1) {
+    // bottom
+    coordinates.push({ value: xyGrid[x][y + 1], x: x, y: y + 1 });
+
+    if (x > 0) {
+      // bottom left
+      coordinates.push({ value: xyGrid[x - 1][y + 1], x: x - 1, y: y + 1 });
+    }
+
+    if (x < xyGrid.length - 1) {
+      // bottom right
+      coordinates.push({ value: xyGrid[x + 1][y + 1], x: x + 1, y: y + 1 });
+    }
+  }
+
+  return coordinates;
 }
 
 export function createSymbolToCoordinatesMap(yxMap: string[][], symbolsToIgnore = ['.']): Map<string, Coordinate[]> {
@@ -67,6 +115,12 @@ export function parseIntUpToChar(stringToParse: string, characterToStopAt: strin
 export interface Coordinate {
   x: number;
   y: number;
+}
+
+export interface CoordinateWithValue {
+  x: number;
+  y: number;
+  value: string;
 }
 
 export interface ThreeDCoordinate {
