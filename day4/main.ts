@@ -17,7 +17,29 @@ export function part1(xyGrid: string[][]): number {
   return accessibleRollCoords.length;
 }
 
-// export function part2(banks: number[][]): number {}
+export function part2(xyGrid: string[][]): number {
+  const accessibleRollCoords: Coordinate[] = [];
+
+  let changes = -1;
+  while (changes === -1 || changes > 0) {
+    changes = 0;
+    for (let x = 0; x < xyGrid.length; x++) {
+      for (let y = 0; y < xyGrid[x].length; y++) {
+        if (xyGrid[x][y] === '@') {
+          const adjCoordinates = get8AdjacentCoordinates(xyGrid, { x, y });
+          const adjRolls = adjCoordinates.filter((coord) => coord.value === '@');
+          if (adjRolls.length < 4) {
+            accessibleRollCoords.push({ x, y });
+            xyGrid[x][y] = '.';
+            changes += 1;
+          }
+        }
+      }
+    }
+  }
+
+  return accessibleRollCoords.length;
+}
 
 function main(): void {
   // const lines = getFileByLinesSync('./day4/simpleInput.txt');
@@ -25,8 +47,8 @@ function main(): void {
 
   const xyGrid = invert2DGrid(create2DGridFromLines(lines, ''));
 
-  console.info(part1(xyGrid));
-  // console.info(part2(banks));
+  // console.info(part1(xyGrid));
+  console.info(part2(xyGrid));
 }
 
 main();
