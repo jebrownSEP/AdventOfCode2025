@@ -76,6 +76,10 @@ export function get8AdjacentCoordinates(xyGrid: string[][], coordinate: Coordina
   return coordinates;
 }
 
+export function isOutOfXYGrid(xyGrid: string[][], coordinate: Coordinate): boolean {
+  return coordinate.x < 0 || coordinate.x >= xyGrid.length || coordinate.y < 0 || coordinate.y >= xyGrid[0].length;
+}
+
 export function createSymbolToCoordinatesMap(yxMap: string[][], symbolsToIgnore = ['.']): Map<string, Coordinate[]> {
   const map = new Map<string, Coordinate[]>();
   for (let y = 0; y < yxMap.length; y++) {
