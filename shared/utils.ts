@@ -16,8 +16,8 @@ export function create2DGridFromLines(lines: string[], separator: string): strin
  *
  * Takes yxMap and returns an xyMap; requires a sqare map as written
  */
-export function invert2DGrid(yxMap: string[][]): string[][] {
-  const xyMap: string[][] = [];
+export function invert2DGrid<T>(yxMap: T[][]): T[][] {
+  const xyMap: T[][] = [];
   for (let x = 0; x < yxMap[0].length; x++) {
     xyMap.push([]);
     for (let y = 0; y < yxMap.length; y++) {
@@ -96,6 +96,9 @@ export function createSymbolToCoordinatesMap(yxMap: string[][], symbolsToIgnore 
 
 export function sumArray(numArray: number[]): number {
   return numArray.reduce((prev, curr) => prev + curr, 0);
+}
+export function multiplyArray(numArray: number[]): number {
+  return numArray.reduce((prev, curr) => prev * curr, 1);
 }
 
 export function throwErrorOnAssertion(assertedValue: boolean, assertedCondition = ''): void {
