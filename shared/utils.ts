@@ -1,5 +1,22 @@
 import * as fs from 'fs';
 
+export interface Coordinate {
+  x: number;
+  y: number;
+}
+
+export interface CoordinateWithValue {
+  x: number;
+  y: number;
+  value: string;
+}
+
+export interface ThreeDCoordinate {
+  x: number;
+  y: number;
+  z: number;
+}
+
 export function getFileByLinesSync(filePath: string): string[] {
   const data = fs.readFileSync(filePath, 'utf8');
   return data.split('\n');
@@ -80,6 +97,10 @@ export function isOutOfXYGrid(xyGrid: string[][], coordinate: Coordinate): boole
   return coordinate.x < 0 || coordinate.x >= xyGrid.length || coordinate.y < 0 || coordinate.y >= xyGrid[0].length;
 }
 
+export function stringifyCoordnate(coordinate: Coordinate): string {
+  return `${coordinate.x},${coordinate.y}`;
+}
+
 export function createSymbolToCoordinatesMap(yxMap: string[][], symbolsToIgnore = ['.']): Map<string, Coordinate[]> {
   const map = new Map<string, Coordinate[]>();
   for (let y = 0; y < yxMap.length; y++) {
@@ -117,23 +138,6 @@ export function parseIntUpToChar(stringToParse: string, characterToStopAt: strin
   }
   const indexOfChar = stringToParse.indexOf(characterToStopAt);
   return parseInt(stringToParse.substring(0, indexOfChar));
-}
-
-export interface Coordinate {
-  x: number;
-  y: number;
-}
-
-export interface CoordinateWithValue {
-  x: number;
-  y: number;
-  value: string;
-}
-
-export interface ThreeDCoordinate {
-  x: number;
-  y: number;
-  z: number;
 }
 
 /**

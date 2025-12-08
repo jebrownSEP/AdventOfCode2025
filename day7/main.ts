@@ -1,4 +1,4 @@
-import { Coordinate, create2DGridFromLines, getFileByLinesSync, invert2DGrid, isOutOfXYGrid } from '../shared/utils';
+import { Coordinate, create2DGridFromLines, getFileByLinesSync, invert2DGrid, isOutOfXYGrid, stringifyCoordnate } from '../shared/utils';
 
 export function part1(xyGrid: string[][], startCoordinate: Coordinate): number {
   const queue: Coordinate[] = [startCoordinate];
@@ -32,9 +32,40 @@ export function part1(xyGrid: string[][], startCoordinate: Coordinate): number {
   return splitCount;
 }
 
-// export function part2(freshRanges: string[], _ingredients: string[]): number {
+export function part2(xyGrid: string[][], startCoordinate: Coordinate): number {
+  const splitterMap: Map<string, number> = new Map();
 
-// }
+  function getSplitCountForPath(currentCoordinate: Coordinate): number {
+    if (isOutOfXYGrid(xyGrid, currentCoordinate)) {
+      // out at the bottom, complete
+      if (!isOutOfXYGrid(xyGrid, { x: currentCoordinate.x, y: currentCoordinate.y - 1 })) {
+        return 1;
+      }
+      return 0;
+    }
+    // splitter
+    else if (xyGrid[currentCoordinate.x][currentCoordinate.y] === '^') {
+      // already visited
+      if (splitterMap.has(stringifyCoordnate(currentCoordinate))) {
+        return splitterMap.get(stringifyCoordnate(currentCoordinate)) as number;
+      }
+      // new
+      else {
+        const leftResult = getSplitCountForPath({ x: currentCoordinate.x - 1, y: currentCoordinate.y });
+        const rightResult = getSplitCountForPath({ x: currentCoordinate.x + 1, y: currentCoordinate.y });
+        const result = leftResult + rightResult;
+        splitterMap.set(stringifyCoordnate(currentCoordinate), result);
+        return result;
+      }
+    }
+    // Regular space (.)
+    else {
+      return getSplitCountForPath({ x: currentCoordinate.x, y: currentCoordinate.y + 1 });
+    }
+  }
+
+  return getSplitCountForPath(startCoordinate);
+}
 
 function main(): void {
   // const lines = getFileByLinesSync('./day7/simpleInput.txt');
@@ -46,8 +77,8 @@ function main(): void {
   const startCoordinate: Coordinate = { x: startX, y: 0 };
 
   const xyGrid = invert2DGrid(yxGrid);
-  console.info(part1(xyGrid, startCoordinate));
-  // console.info(part2(freshRanges, ingredients));
+  // console.info(part1(xyGrid, startCoordinate));
+  console.info(part2(xyGrid, startCoordinate));
 }
 
 main();
