@@ -105,10 +105,26 @@ export function stringifyCoordinate3D(coordinate: ThreeDCoordinate): string {
   return `${coordinate.x},${coordinate.y},${coordinate.z}`;
 }
 
+export function getPairsOfValueOrderAgnostic<T>(values: T[]): T[][] {
+  const allPairs: T[][] = [];
+  for (let i = 0; i < values.length - 1; i++) {
+    for (let j = i + 1; j < values.length; j++) {
+      allPairs.push([values[i], values[j]]);
+    }
+  }
+  return allPairs;
+}
+
 export interface PairOfThreeDCoordinatesWithDistance {
   coordinate1: ThreeDCoordinate;
   coordinate2: ThreeDCoordinate;
   distance: number;
+}
+
+export interface PairOfTWithValue<T> {
+  coordinate1: T;
+  coordinate2: T;
+  value: number;
 }
 
 /**
