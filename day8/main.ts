@@ -50,9 +50,33 @@ export function part1(junction3DCoordinates: ThreeDCoordinate[], connectionSteps
   return multiplyArray(top3Sizes);
 }
 
-// export function part2(freshRanges: string[], _ingredients: string[]): number {
+export function part2(junction3DCoordinates: ThreeDCoordinate[]): number {
+  const closestPairs = getClosestCoordinates(junction3DCoordinates);
+  // console.info(closestPairs);
 
-// }
+  const circuits: Set<string>[] = junction3DCoordinates.map((coord) => new Set<string>([stringifyCoordinate3D(coord)]));
+
+  let filteredCircuits: Set<string>[];
+  let i = 0;
+
+  do {
+    const { coordinate1, coordinate2 } = closestPairs[i];
+    const circuit1Index = circuits.findIndex((circuit) => circuit.has(stringifyCoordinate3D(coordinate1)));
+    const circuit2Index = circuits.findIndex((circuit) => circuit.has(stringifyCoordinate3D(coordinate2)));
+
+    if (circuit1Index !== circuit2Index) {
+      circuits[circuit1Index] = new Set<string>([...circuits[circuit1Index], ...circuits[circuit2Index]]);
+      circuits[circuit2Index] = new Set<string>();
+    }
+    i++;
+    filteredCircuits = circuits.filter((circuit) => circuit.size > 0);
+  } while (filteredCircuits.length > 1);
+  console.info(filteredCircuits[0].size);
+
+  const lastConnection = closestPairs[i - 1];
+  console.info(lastConnection);
+  return lastConnection.coordinate1.x * lastConnection.coordinate2.x;
+}
 
 function main(): void {
   // const lines = getFileByLinesSync('./day8/simpleInput.txt');
@@ -63,8 +87,8 @@ function main(): void {
     return { x: +x, y: +y, z: +z };
   });
 
-  console.info(part1(junction3DCoordinates, 1000));
-  // console.info(part2(freshRanges, ingredients));
+  // console.info(part1(junction3DCoordinates, 1000));
+  console.info(part2(junction3DCoordinates));
 }
 
 main();
