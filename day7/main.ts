@@ -1,4 +1,4 @@
-import { Coordinate, create2DGridFromLines, getFileByLinesSync, invert2DGrid, isOutOfXYGrid, stringifyCoordnate } from '../shared/utils';
+import { Coordinate, create2DGridFromLines, getFileByLinesSync, invert2DGrid, isOutOfXYGrid, stringifyCoordinate } from '../shared/utils';
 
 export function part1(xyGrid: string[][], startCoordinate: Coordinate): number {
   const queue: Coordinate[] = [startCoordinate];
@@ -46,15 +46,15 @@ export function part2(xyGrid: string[][], startCoordinate: Coordinate): number {
     // splitter
     else if (xyGrid[currentCoordinate.x][currentCoordinate.y] === '^') {
       // already visited
-      if (splitterMap.has(stringifyCoordnate(currentCoordinate))) {
-        return splitterMap.get(stringifyCoordnate(currentCoordinate)) as number;
+      if (splitterMap.has(stringifyCoordinate(currentCoordinate))) {
+        return splitterMap.get(stringifyCoordinate(currentCoordinate)) as number;
       }
       // new
       else {
         const leftResult = getSplitCountForPath({ x: currentCoordinate.x - 1, y: currentCoordinate.y });
         const rightResult = getSplitCountForPath({ x: currentCoordinate.x + 1, y: currentCoordinate.y });
         const result = leftResult + rightResult;
-        splitterMap.set(stringifyCoordnate(currentCoordinate), result);
+        splitterMap.set(stringifyCoordinate(currentCoordinate), result);
         return result;
       }
     }

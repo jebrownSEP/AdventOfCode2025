@@ -97,8 +97,26 @@ export function isOutOfXYGrid(xyGrid: string[][], coordinate: Coordinate): boole
   return coordinate.x < 0 || coordinate.x >= xyGrid.length || coordinate.y < 0 || coordinate.y >= xyGrid[0].length;
 }
 
-export function stringifyCoordnate(coordinate: Coordinate): string {
+export function stringifyCoordinate(coordinate: Coordinate): string {
   return `${coordinate.x},${coordinate.y}`;
+}
+
+export function stringifyCoordinate3D(coordinate: ThreeDCoordinate): string {
+  return `${coordinate.x},${coordinate.y},${coordinate.z}`;
+}
+
+export interface PairOfThreeDCoordinatesWithDistance {
+  coordinate1: ThreeDCoordinate;
+  coordinate2: ThreeDCoordinate;
+  distance: number;
+}
+
+/**
+ *
+ * AKA Straight line distance
+ */
+export function getEuclideanDistanceBetween3DCoordinates(coordinateA: ThreeDCoordinate, coordinateB: ThreeDCoordinate): number {
+  return Math.sqrt((coordinateA.x - coordinateB.x) ** 2 + (coordinateA.y - coordinateB.y) ** 2 + (coordinateA.z - coordinateB.z) ** 2);
 }
 
 export function createSymbolToCoordinatesMap(yxMap: string[][], symbolsToIgnore = ['.']): Map<string, Coordinate[]> {
