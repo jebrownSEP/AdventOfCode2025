@@ -6,8 +6,6 @@ const PERIMETER_POINTS_SET: Set<string> = new Set();
 
 const IS_IN_PERIMETER: Map<string, boolean> = new Map();
 
-let MAX_X_PERIMETER: number;
-
 function getLargestAreaPairs(coordinates: Coordinate[]): PairOfTWithValue<Coordinate>[] {
   const allPairs = getPairsOfValueOrderAgnostic(coordinates);
 
@@ -94,8 +92,6 @@ function populateGlobals(redCoords: Coordinate[]): void {
       IS_IN_PERIMETER.set(stringifyCoordinate(coord), true);
     });
   }
-
-  MAX_X_PERIMETER = redCoords.sort((coord1, coord2) => coord2.x - coord1.x)[0].x;
 }
 
 function isWithinPerimeterIncludingEdge(coord: Coordinate): boolean {
@@ -104,12 +100,21 @@ function isWithinPerimeterIncludingEdge(coord: Coordinate): boolean {
     return IS_IN_PERIMETER.get(stringifyCoordinate(coord))!;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const maxXCoord = Array.from(PERIMETER_POINTS_SET)
+    .filter((perimCoord) => +perimCoord.split(',')[1] === coord.y)
+    .map((perimCoordStr) => {
+      const [x, y] = perimCoordStr.split(',');
+      return { x: +x, y: +y } as Coordinate;
+    })
+    .sort((a, b) => b.x - a.x)[0]!;
+
   // Ray casting method
   // if arbitrary array from coord to edge
   // if odd intersections, inside, else outside
 
   // For easy test, just go right from coord
-  const rayPoints = [coord, ...getAllPointsBetweenExclusiveAtXOrY(coord, { x: MAX_X_PERIMETER, y: coord.y }, true), { x: MAX_X_PERIMETER, y: coord.y }];
+  const rayPoints = [coord, ...getAllPointsBetweenExclusiveAtXOrY(coord, { x: maxXCoord.x, y: coord.y }, true), { x: maxXCoord.x, y: coord.y }];
 
   const intersections = rayPoints.filter(
     (rayCoord) =>
