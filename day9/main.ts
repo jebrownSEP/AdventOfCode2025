@@ -123,6 +123,29 @@ function isInPerimeterIncludingEdge(coord: Coordinate): boolean {
   return result;
 }
 
+function getPerimeterPointsOfRectangleWithCornersInclusive(coord1: Coordinate, coord2: Coordinate): Coordinate[] {
+  const maxX = Math.max(coord1.x, coord2.x);
+  const maxY = Math.max(coord1.y, coord2.y);
+  const minX = Math.min(coord1.x, coord2.x);
+  const minY = Math.min(coord1.y, coord2.y);
+
+  const topLeft = { x: minX, y: minY };
+  const topRight = { x: maxX, y: minY };
+  const bottomLeft = { x: minX, y: maxY };
+  const bottomRight = { x: maxX, y: maxY };
+
+  return [
+    topLeft,
+    ...getAllPointsBetweenExclusiveAtXOrY(topLeft, topRight),
+    topRight,
+    ...getAllPointsBetweenExclusiveAtXOrY(topLeft, bottomRight),
+    bottomRight,
+    bottomLeft,
+    ...getAllPointsBetweenExclusiveAtXOrY(bottomLeft, topRight),
+    ...getAllPointsBetweenExclusiveAtXOrY(bottomLeft, bottomRight),
+  ];
+}
+
 function containsOnlyRedAndGreen(pairWithArea: PairOfTWithValue<Coordinate>): boolean {
   const { coordinate1, coordinate2 } = pairWithArea;
 
@@ -130,32 +153,33 @@ function containsOnlyRedAndGreen(pairWithArea: PairOfTWithValue<Coordinate>): bo
   //   console.info('here');
   // }
 
-  const maxX = Math.max(coordinate1.x, coordinate2.x);
-  const maxY = Math.max(coordinate1.y, coordinate2.y);
-  const minX = Math.min(coordinate1.x, coordinate2.x);
-  const minY = Math.min(coordinate1.y, coordinate2.y);
+  // const maxX = Math.max(coordinate1.x, coordinate2.x);
+  // const maxY = Math.max(coordinate1.y, coordinate2.y);
+  // const minX = Math.min(coordinate1.x, coordinate2.x);
+  // const minY = Math.min(coordinate1.y, coordinate2.y);
 
-  const topLeft = { x: minX, y: minY };
-  const topRight = { x: maxX, y: minY };
-  const bottomLeft = { x: minX, y: maxY };
-  const bottomRight = { x: maxX, y: maxY };
+  // const topLeft = { x: minX, y: minY };
+  // const topRight = { x: maxX, y: minY };
+  // const bottomLeft = { x: minX, y: maxY };
+  // const bottomRight = { x: maxX, y: maxY };
 
-  // TODO: HERE! This is not true!!! What am I forgetting?...
-  if ([topLeft, topRight, bottomLeft, bottomRight].every((point) => isInPerimeterIncludingEdge(point))) {
-    return true;
-  }
+  // // TODO: HERE! This is not true!!! What am I forgetting?...
+  // if ([topLeft, topRight, bottomLeft, bottomRight].every((point) => isInPerimeterIncludingEdge(point))) {
+  //   return true;
+  // }
 
-  // make a smaller square and check its corners
-  const smallTopLeft = { x: minX + 1, y: minY + 1 };
-  const smallTopRight = { x: maxX - 1, y: minY + 1 };
-  const smallBottomLeft = { x: minX + 1, y: maxY - 1 };
-  const smallBottomRight = { x: maxX - 1, y: maxY - 1 };
+  // // make a smaller square and check its corners
+  // const smallTopLeft = { x: minX + 1, y: minY + 1 };
+  // const smallTopRight = { x: maxX - 1, y: minY + 1 };
+  // const smallBottomLeft = { x: minX + 1, y: maxY - 1 };
+  // const smallBottomRight = { x: maxX - 1, y: maxY - 1 };
 
-  return [smallTopLeft, smallTopRight, smallBottomLeft, smallBottomRight].every((point) => isInPerimeterIncludingEdge(point));
+  // return [smallTopLeft, smallTopRight, smallBottomLeft, smallBottomRight].every((point) => isInPerimeterIncludingEdge(point));
 
-  // const innerPerimeterPoints: Coordinate[] = getPerimeterPointsOfRectangleWithCornersInclusive(coordinate1, coordinate2);
+  // TODO: this didn't work, too many points to check
+  const innerPerimeterPoints: Coordinate[] = getPerimeterPointsOfRectangleWithCornersInclusive(coordinate1, coordinate2);
 
-  // return innerPerimeterPoints.every((point) => isInPerimeterIncludingEdge(point, perimeterPointsInRedAndGreen));
+  return innerPerimeterPoints.every((point) => isInPerimeterIncludingEdge(point));
 }
 
 export function part2(coordinates: Coordinate[]): number {
