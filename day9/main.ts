@@ -98,7 +98,7 @@ function populateGlobals(redCoords: Coordinate[]): void {
   MAX_X_PERIMETER = redCoords.sort((coord1, coord2) => coord2.x - coord1.x)[0].x;
 }
 
-function isInPerimeterIncludingEdge(coord: Coordinate): boolean {
+function isWithinPerimeterIncludingEdge(coord: Coordinate): boolean {
   if (IS_IN_PERIMETER.has(stringifyCoordinate(coord))) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return IS_IN_PERIMETER.get(stringifyCoordinate(coord))!;
@@ -153,20 +153,19 @@ function containsOnlyRedAndGreen(pairWithArea: PairOfTWithValue<Coordinate>): bo
   //   console.info('here');
   // }
 
-  // const maxX = Math.max(coordinate1.x, coordinate2.x);
-  // const maxY = Math.max(coordinate1.y, coordinate2.y);
-  // const minX = Math.min(coordinate1.x, coordinate2.x);
-  // const minY = Math.min(coordinate1.y, coordinate2.y);
+  const maxX = Math.max(coordinate1.x, coordinate2.x);
+  const maxY = Math.max(coordinate1.y, coordinate2.y);
+  const minX = Math.min(coordinate1.x, coordinate2.x);
+  const minY = Math.min(coordinate1.y, coordinate2.y);
 
-  // const topLeft = { x: minX, y: minY };
-  // const topRight = { x: maxX, y: minY };
-  // const bottomLeft = { x: minX, y: maxY };
-  // const bottomRight = { x: maxX, y: maxY };
+  const topLeft = { x: minX, y: minY };
+  const topRight = { x: maxX, y: minY };
+  const bottomLeft = { x: minX, y: maxY };
+  const bottomRight = { x: maxX, y: maxY };
 
-  // // TODO: HERE! This is not true!!! What am I forgetting?...
-  // if ([topLeft, topRight, bottomLeft, bottomRight].every((point) => isInPerimeterIncludingEdge(point))) {
-  //   return true;
-  // }
+  if ([topLeft, topRight, bottomLeft, bottomRight].some((point) => !isWithinPerimeterIncludingEdge(point))) {
+    return false;
+  }
 
   // // make a smaller square and check its corners
   // const smallTopLeft = { x: minX + 1, y: minY + 1 };
@@ -179,7 +178,7 @@ function containsOnlyRedAndGreen(pairWithArea: PairOfTWithValue<Coordinate>): bo
   // TODO: this didn't work, too many points to check
   const innerPerimeterPoints: Coordinate[] = getPerimeterPointsOfRectangleWithCornersInclusive(coordinate1, coordinate2);
 
-  return innerPerimeterPoints.every((point) => isInPerimeterIncludingEdge(point));
+  return innerPerimeterPoints.every((point) => isWithinPerimeterIncludingEdge(point));
 }
 
 export function part2(coordinates: Coordinate[]): number {
