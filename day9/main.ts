@@ -1,6 +1,12 @@
-import { Coordinate, getFileByLinesSync, getPairsOfValueOrderAgnostic, PairOfTWithValue } from '../shared/utils';
+import { Coordinate, getFileByLinesSync, getPairsOfValueOrderAgnostic, PairOfTWithValue, stringifyCoordinate } from '../shared/utils';
 
 // Globals
+
+const PERIMETER_POINTS_SET: Set<string> = new Set();
+
+const IS_IN_PERIMETER: Map<string, boolean> = new Map();
+
+let MAX_X_PERIMETER: number;
 
 function getLargestAreaPairs(coordinates: Coordinate[]): PairOfTWithValue<Coordinate>[] {
   const allPairs = getPairsOfValueOrderAgnostic(coordinates);
@@ -62,11 +68,9 @@ function getAllPointsBetweenExclusiveAtXOrY(coordinate1: Coordinate, coordinate2
   return coordinatesBetween;
 }
 
-function getPerimeterRedAndGreenPoints(redCoords: Coordinate[]): Coordinate[] {
+function populateGlobals(redCoords: Coordinate[]): void {
   // Loop through array once, then last and first.  Get all the green coordinates between.
   // For now, assume we do NOT need to fill in, and just need the edges.
-
-  const perimeterPoints: Coordinate[] = [];
 
   for (let i = 0; i < redCoords.length; i++) {
     const coord1 = redCoords[i];
@@ -76,69 +80,50 @@ function getPerimeterRedAndGreenPoints(redCoords: Coordinate[]): Coordinate[] {
     } else {
       coord2 = redCoords[i + 1];
     }
-    perimeterPoints.push(coord1);
+    PERIMETER_POINTS_SET.add(stringifyCoordinate(coord1));
+    IS_IN_PERIMETER.set(stringifyCoordinate(coord1), true);
 
+    let between;
     if (coord1.x === coord2.x) {
-      perimeterPoints.push(...getAllPointsBetweenExclusiveAtXOrY(coord1, coord2, false));
+      between = getAllPointsBetweenExclusiveAtXOrY(coord1, coord2, false);
     } else {
-      perimeterPoints.push(...getAllPointsBetweenExclusiveAtXOrY(coord1, coord2, true));
+      between = getAllPointsBetweenExclusiveAtXOrY(coord1, coord2, true);
     }
+    between.forEach((coord) => {
+      PERIMETER_POINTS_SET.add(stringifyCoordinate(coord));
+      IS_IN_PERIMETER.set(stringifyCoordinate(coord), true);
+    });
   }
 
-  return perimeterPoints;
+  MAX_X_PERIMETER = redCoords.sort((coord1, coord2) => coord2.x - coord1.x)[0].x;
 }
 
-function getPerimeterPointsOfRectangleWithCornersInclusive(coord1: Coordinate, coord2: Coordinate): Coordinate[] {
-  const maxX = Math.max(coord1.x, coord2.x);
-  const maxY = Math.max(coord1.y, coord2.y);
-  const minX = Math.min(coord1.x, coord2.x);
-  const minY = Math.min(coord1.y, coord2.y);
+function isInPerimeterIncludingEdge(coord: Coordinate): boolean {
+  if (IS_IN_PERIMETER.has(stringifyCoordinate(coord))) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return IS_IN_PERIMETER.get(stringifyCoordinate(coord))!;
+  }
 
-  const topLeft = { x: minX, y: minY };
-  const topRight = { x: maxX, y: minY };
-  const bottomLeft = { x: minX, y: maxY };
-  const bottomRight = { x: maxX, y: maxY };
-
-  return [
-    topLeft,
-    ...getAllPointsBetweenExclusiveAtXOrY(topLeft, topRight),
-    topRight,
-    ...getAllPointsBetweenExclusiveAtXOrY(topLeft, bottomRight),
-    bottomRight,
-    bottomLeft,
-    ...getAllPointsBetweenExclusiveAtXOrY(bottomLeft, topRight),
-    ...getAllPointsBetweenExclusiveAtXOrY(bottomLeft, bottomRight),
-  ];
-}
-
-function isInPerimeterIncludingEdge(coord: Coordinate, perimeterPoints: Coordinate[]): boolean {
   // Ray casting method
   // if arbitrary array from coord to edge
   // if odd intersections, inside, else outside
 
-  const maxXCoord = perimeterPoints.sort((coord1, coord2) => coord2.x - coord1.x)[0];
-  if (maxXCoord == null || maxXCoord == undefined) {
-    throw new Error('invalid maxX');
-  }
-
-  if (perimeterPoints.some((perimeterPoint) => perimeterPoint.x === coord.x && perimeterPoint.y === coord.y)) {
-    return true;
-  }
-
   // For easy test, just go right from coord
-  const rayPoints = [coord, ...getAllPointsBetweenExclusiveAtXOrY(coord, maxXCoord, true), { x: maxXCoord.x, y: coord.y }];
+  const rayPoints = [coord, ...getAllPointsBetweenExclusiveAtXOrY(coord, { x: MAX_X_PERIMETER, y: coord.y }, true), { x: MAX_X_PERIMETER, y: coord.y }];
 
-  // AND need to optimize by using maps
   const intersections = rayPoints.filter(
     (rayCoord) =>
-      perimeterPoints.some((perimCoord) => perimCoord.x === rayCoord.x && perimCoord.y === rayCoord.y) &&
-      perimeterPoints.some((perimCoord) => perimCoord.x === rayCoord.x && perimCoord.y === rayCoord.y + 1),
+      PERIMETER_POINTS_SET.has(stringifyCoordinate(rayCoord)) && PERIMETER_POINTS_SET.has(stringifyCoordinate({ x: rayCoord.x, y: rayCoord.y + 1 })),
   );
 
-  return intersections.length % 2 !== 0;
+  const result = intersections.length % 2 !== 0;
+
+  IS_IN_PERIMETER.set(stringifyCoordinate(coord), result);
+
+  return result;
 }
 
-function containsOnlyRedAndGreen(pairWithArea: PairOfTWithValue<Coordinate>, perimeterPointsInRedAndGreen: Coordinate[]): boolean {
+function containsOnlyRedAndGreen(pairWithArea: PairOfTWithValue<Coordinate>): boolean {
   const { coordinate1, coordinate2 } = pairWithArea;
 
   // if (coordinate1.x === 83876 && coordinate1.y === 85247 && coordinate2.x === 16919 && coordinate2.y === 14055) {
@@ -155,7 +140,8 @@ function containsOnlyRedAndGreen(pairWithArea: PairOfTWithValue<Coordinate>, per
   const bottomLeft = { x: minX, y: maxY };
   const bottomRight = { x: maxX, y: maxY };
 
-  if ([topLeft, topRight, bottomLeft, bottomRight].every((point) => isInPerimeterIncludingEdge(point, perimeterPointsInRedAndGreen))) {
+  // TODO: HERE! This is not true!!! What am I forgetting?...
+  if ([topLeft, topRight, bottomLeft, bottomRight].every((point) => isInPerimeterIncludingEdge(point))) {
     return true;
   }
 
@@ -165,7 +151,7 @@ function containsOnlyRedAndGreen(pairWithArea: PairOfTWithValue<Coordinate>, per
   const smallBottomLeft = { x: minX + 1, y: maxY - 1 };
   const smallBottomRight = { x: maxX - 1, y: maxY - 1 };
 
-  return [smallTopLeft, smallTopRight, smallBottomLeft, smallBottomRight].every((point) => isInPerimeterIncludingEdge(point, perimeterPointsInRedAndGreen));
+  return [smallTopLeft, smallTopRight, smallBottomLeft, smallBottomRight].every((point) => isInPerimeterIncludingEdge(point));
 
   // const innerPerimeterPoints: Coordinate[] = getPerimeterPointsOfRectangleWithCornersInclusive(coordinate1, coordinate2);
 
@@ -174,17 +160,19 @@ function containsOnlyRedAndGreen(pairWithArea: PairOfTWithValue<Coordinate>, per
 
 export function part2(coordinates: Coordinate[]): number {
   const largestAreaPairs = getLargestAreaPairs(coordinates);
-  const perimeterPointsInRedAndGreen = getPerimeterRedAndGreenPoints(coordinates);
+
+  populateGlobals(coordinates);
+
   const pairsLength = largestAreaPairs.length;
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const firstOnlyRedAndGreen = largestAreaPairs.find((pairWithArea, index) => {
     // TEMP
-    if (index < 2) {
+    if (index < 546) {
       return false;
     }
     console.info(`${index} of ${pairsLength}`);
-    return containsOnlyRedAndGreen(pairWithArea, perimeterPointsInRedAndGreen);
+    return containsOnlyRedAndGreen(pairWithArea);
   })!;
 
   console.info(firstOnlyRedAndGreen);
