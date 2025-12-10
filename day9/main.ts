@@ -34,6 +34,9 @@ function getAllPointsBetweenExclusiveAtXOrY(coordinate1: Coordinate, coordinate2
   const coordinatesBetween: Coordinate[] = [];
 
   if (xDirection) {
+    if (coordinate1.y !== coordinate2.y) {
+      throw new Error('mistake in getAllPointsBetweenExclusiveAtXOrY ' + xDirection + coordinate1 + coordinate2);
+    }
     const coord1ToCoord2 = coordinate2.x > coordinate1.x;
     let start: number;
     let end: number;
@@ -48,6 +51,9 @@ function getAllPointsBetweenExclusiveAtXOrY(coordinate1: Coordinate, coordinate2
       coordinatesBetween.push({ x: i, y: coordinate1.y });
     }
   } else {
+    if (coordinate1.x !== coordinate2.x) {
+      throw new Error('mistake in getAllPointsBetweenExclusiveAtXOrY ' + xDirection + coordinate1 + coordinate2);
+    }
     const coord1ToCoord2 = coordinate2.y > coordinate1.y;
     let start: number;
     let end: number;
@@ -128,28 +134,51 @@ function isWithinPerimeterIncludingEdge(coord: Coordinate): boolean {
   return result;
 }
 
-function getPerimeterPointsOfRectangleWithCornersInclusive(coord1: Coordinate, coord2: Coordinate): Coordinate[] {
-  const maxX = Math.max(coord1.x, coord2.x);
-  const maxY = Math.max(coord1.y, coord2.y);
-  const minX = Math.min(coord1.x, coord2.x);
-  const minY = Math.min(coord1.y, coord2.y);
+// function getPerimeterPointsOfRectangleWithCornersInclusive(coord1: Coordinate, coord2: Coordinate): Coordinate[] {
+//   const maxX = Math.max(coord1.x, coord2.x);
+//   const maxY = Math.max(coord1.y, coord2.y);
+//   const minX = Math.min(coord1.x, coord2.x);
+//   const minY = Math.min(coord1.y, coord2.y);
 
-  const topLeft = { x: minX, y: minY };
-  const topRight = { x: maxX, y: minY };
-  const bottomLeft = { x: minX, y: maxY };
-  const bottomRight = { x: maxX, y: maxY };
+//   const topLeft = { x: minX, y: minY };
+//   const topRight = { x: maxX, y: minY };
+//   const bottomLeft = { x: minX, y: maxY };
+//   const bottomRight = { x: maxX, y: maxY };
 
-  return [
-    topLeft,
-    ...getAllPointsBetweenExclusiveAtXOrY(topLeft, topRight),
-    topRight,
-    ...getAllPointsBetweenExclusiveAtXOrY(topLeft, bottomRight),
-    bottomRight,
-    bottomLeft,
-    ...getAllPointsBetweenExclusiveAtXOrY(bottomLeft, topRight),
-    ...getAllPointsBetweenExclusiveAtXOrY(bottomLeft, bottomRight),
-  ];
-}
+//   return [
+//     topLeft,
+//     ...getAllPointsBetweenExclusiveAtXOrY(topLeft, topRight),
+//     topRight,
+//     ...getAllPointsBetweenExclusiveAtXOrY(topLeft, bottomRight),
+//     bottomRight,
+//     bottomLeft,
+//     ...getAllPointsBetweenExclusiveAtXOrY(bottomLeft, topRight),
+//     ...getAllPointsBetweenExclusiveAtXOrY(bottomLeft, bottomRight),
+//   ];
+// }
+
+// function hasPerimeterPointsOnLineExclusive(coord1: Coordinate, coord2: Coordinate): boolean {
+//   const xDirection = coord1.y === coord2.y;
+
+//   if (xDirection) {
+//     const maxX = Math.max(coord1.x, coord2.x);
+//     const minX = Math.min(coord1.x, coord2.x);
+//     return Array.from(PERIMETER_POINTS_SET).some((coordStr) => {
+//       const [x, y] = coordStr.split(',');
+//       return +y === coord1.y && +x > minX && +x < maxX;
+//     });
+//   } else {
+//     if (coord1.x !== coord2.x) {
+//       throw new Error('hasPerimeterPointsOnLineExclusive');
+//     }
+//     const maxY = Math.max(coord1.y, coord2.y);
+//     const minY = Math.min(coord1.y, coord2.y);
+//     return Array.from(PERIMETER_POINTS_SET).some((coordStr) => {
+//       const [x, y] = coordStr.split(',');
+//       return +x === coord1.x && +y > minY && +y < maxY;
+//     });
+//   }
+// }
 
 function containsOnlyRedAndGreen(pairWithArea: PairOfTWithValue<Coordinate>): boolean {
   const { coordinate1, coordinate2 } = pairWithArea;
@@ -172,6 +201,43 @@ function containsOnlyRedAndGreen(pairWithArea: PairOfTWithValue<Coordinate>): bo
     return false;
   }
 
+  // TODO: if this doesn't work, check for TWO points... IDK how we'd get one... but that would GUARANTEE!
+  const hasPointsTopSide = Array.from(PERIMETER_POINTS_SET).some((coordStr) => {
+    const [x, y] = coordStr.split(',').map((val) => +val);
+    return y === topLeft.y && x > topLeft.x && x < topRight.x && PERIMETER_POINTS_SET.has(`${x},${y + 1}`);
+  });
+
+  if (hasPointsTopSide) {
+    return false;
+  }
+
+  const hasPointsBottomSide = Array.from(PERIMETER_POINTS_SET).some((coordStr) => {
+    const [x, y] = coordStr.split(',').map((val) => +val);
+    return y === bottomLeft.y && x > bottomLeft.x && x < bottomRight.x && PERIMETER_POINTS_SET.has(`${x},${y - 1}`);
+  });
+
+  if (hasPointsBottomSide) {
+    return false;
+  }
+
+  const hasPointsLeftSide = Array.from(PERIMETER_POINTS_SET).some((coordStr) => {
+    const [x, y] = coordStr.split(',').map((val) => +val);
+    return x === topLeft.x && y > topLeft.y && y < bottomLeft.y && PERIMETER_POINTS_SET.has(`${x + 1},${y}`);
+  });
+
+  if (hasPointsLeftSide) {
+    return false;
+  }
+
+  const hasPointsRightSide = Array.from(PERIMETER_POINTS_SET).some((coordStr) => {
+    const [x, y] = coordStr.split(',').map((val) => +val);
+    return x === topRight.x && y > topRight.y && y < bottomRight.y && PERIMETER_POINTS_SET.has(`${x - 1},${y}`);
+  });
+
+  if (hasPointsRightSide) {
+    return false;
+  }
+
   // // make a smaller square and check its corners
   // const smallTopLeft = { x: minX + 1, y: minY + 1 };
   // const smallTopRight = { x: maxX - 1, y: minY + 1 };
@@ -180,10 +246,11 @@ function containsOnlyRedAndGreen(pairWithArea: PairOfTWithValue<Coordinate>): bo
 
   // return [smallTopLeft, smallTopRight, smallBottomLeft, smallBottomRight].every((point) => isInPerimeterIncludingEdge(point));
 
-  // TODO: this didn't work, too many points to check
-  const innerPerimeterPoints: Coordinate[] = getPerimeterPointsOfRectangleWithCornersInclusive(coordinate1, coordinate2);
+  // const innerPerimeterPoints: Coordinate[] = getPerimeterPointsOfRectangleWithCornersInclusive(coordinate1, coordinate2);
 
-  return innerPerimeterPoints.every((point) => isWithinPerimeterIncludingEdge(point));
+  // return innerPerimeterPoints.every((point) => isWithinPerimeterIncludingEdge(point));
+
+  return true;
 }
 
 export function part2(coordinates: Coordinate[]): number {
@@ -195,10 +262,10 @@ export function part2(coordinates: Coordinate[]): number {
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const firstOnlyRedAndGreen = largestAreaPairs.find((pairWithArea, index) => {
-    // TEMP
-    if (index < 546) {
-      return false;
-    }
+    // // TEMP
+    // if (index < 546) {
+    //   return false;
+    // }
     console.info(`${index} of ${pairsLength}`);
     return containsOnlyRedAndGreen(pairWithArea);
   })!;
