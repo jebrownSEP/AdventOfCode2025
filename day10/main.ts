@@ -3,7 +3,7 @@ import { getFileByLinesSync, sumArray } from '../shared/utils';
 interface Requirement {
   indicatorLight: string;
   buttons: number[][];
-  joltage: string;
+  joltages: number[];
 }
 
 function togglePosition(singleLight: string): string {
@@ -22,7 +22,7 @@ function togglePositions(light: string, positionsToToggle: number[]): string {
   return changedLight.join('');
 }
 
-function getFewestPresses(requirement: Requirement): number {
+function getFewestPressesForLights(requirement: Requirement): number {
   const { indicatorLight, buttons } = requirement;
   const queue: { light: string; steps: number }[] = [{ light: '.'.repeat(indicatorLight.length), steps: 0 }];
   const visitedConfigs = new Set<string>();
@@ -47,24 +47,63 @@ function getFewestPresses(requirement: Requirement): number {
 }
 
 export function part1(requirements: Requirement[]): number {
-  const fewestPresses = requirements.map((req) => getFewestPresses(req));
+  const fewestPresses = requirements.map((req) => getFewestPressesForLights(req));
 
   console.info(fewestPresses);
   return sumArray(fewestPresses);
 }
 
-// export function part2(freshRanges: string[], _ingredients: string[]): number {
+function getFewestPressesForJoltages(requirement: Requirement): number {
+  // eslint-disable-next-line prefer-const
+  let { buttons, joltages } = requirement;
+  buttons = buttons.sort((a, b) => b.length - a.length);
+  const queue: { joltages: number[]; steps: number }[] = [{ joltages: joltages.map((_) => 0), steps: 0 }];
+  // const visitedConfigs = new Set<string>();
 
-// }
+  let currentJoltage: { joltages: number[]; steps: number } | undefined;
+  do {
+    console.info(queue.length);
+    currentJoltage = queue.shift();
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    if (currentJoltage!.joltages.some((joltage, index) => joltage > requirement.joltages[index])) {
+      continue;
+    }
+
+    buttons.forEach((buttonGroup) => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      // if (!visitedConfigs.has(`${currentJoltage!.light},${buttonGroup.join(',')}`)) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const updatedJoltages = [...currentJoltage!.joltages];
+      buttonGroup.forEach((buttonIndex) => {
+        updatedJoltages[buttonIndex] = updatedJoltages[buttonIndex] + 1;
+      });
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      queue.push({ joltages: updatedJoltages, steps: currentJoltage!.steps + 1 });
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      // visitedConfigs.add(`${currentJoltage!.light},${buttonGroup.join(',')}`);
+      // }
+    });
+  } while (currentJoltage && !currentJoltage.joltages.every((joltage, index) => joltage === requirement.joltages[index]));
+
+  return currentJoltage?.steps ?? Infinity;
+}
+
+export function part2(requirements: Requirement[]): number {
+  const fewestPresses = requirements.map((req) => getFewestPressesForJoltages(req));
+
+  console.info(fewestPresses);
+  return sumArray(fewestPresses);
+}
 
 function main(): void {
-  // const lines = getFileByLinesSync('./day10/simpleInput.txt');
-  const lines = getFileByLinesSync('./day10/input.txt');
+  const lines = getFileByLinesSync('./day10/simpleInput.txt');
+  // const lines = getFileByLinesSync('./day10/input.txt');
 
   const requirements: Requirement[] = lines.map((line) => {
     const splitLine = line.split(' ');
     const lightIndicator = splitLine[0];
-    const joltage = splitLine[splitLine.length - 1];
+    const joltages = splitLine[splitLine.length - 1];
     const buttons = splitLine.slice(1, splitLine.length - 1);
 
     return {
@@ -75,14 +114,17 @@ function main(): void {
           .split(',')
           .map((val) => +val);
       }),
-      joltage: joltage,
+      joltages: joltages
+        .substring(1, joltages.length - 1)
+        .split(',')
+        .map((val) => +val),
     };
   });
 
   // console.info(JSON.stringify(requirements, null, 2));
 
-  console.info(part1(requirements));
-  // console.info(part2(freshRanges, ingredients));
+  // console.info(part1(requirements));
+  console.info(part2(requirements));
 }
 
 main();
