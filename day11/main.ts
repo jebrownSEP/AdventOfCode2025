@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { getFileByLinesSync, sumArray } from '../shared/utils';
 
 export function part1(nodeMap: Map<string, string[]>): number {
@@ -28,36 +29,42 @@ export function part1(nodeMap: Map<string, string[]>): number {
 }
 
 export function part2(nodeMap: Map<string, string[]>): number {
-  const pathsOutMap = new Map<string, string[][]>();
+  let pathsOutCountMap = new Map<string, number>();
 
-  const nodesToGoThrough = ['dac', 'fft'];
-
-  function getPathsOut(currentNode: string, currentPath: string[]): string[][] {
-    if (currentNode === 'out') {
-      return [currentPath];
-    } else if (pathsOutMap.has(currentNode)) {
+  function getNumberPathsOut(currentNode: string, endNode: string): number {
+    if (currentNode === endNode) {
+      return 1;
+    } else if (pathsOutCountMap.has(currentNode)) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return [currentPath, ...pathsOutMap.get(currentNode)!];
+      return pathsOutCountMap.get(currentNode)!;
     } else {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const currentEndNodes = nodeMap.get(currentNode)!;
 
-      if (!currentEndNodes) {
-        console.info('here');
-      }
-
-      const results = currentEndNodes.map((endNode) => {
-        const result = getPathsOut(endNode, [...currentPath, currentNode]);
-        pathsOutMap.set(endNode, result);
+      const results = currentEndNodes.map((pathNode) => {
+        const result = getNumberPathsOut(pathNode, endNode);
+        pathsOutCountMap.set(pathNode, result);
         return result;
       });
-      // const sum = sumArray(results);
-      pathsOutMap.set(currentNode, results.flat());
-      return results.flat();
+      const sum = sumArray(results);
+      pathsOutCountMap.set(currentNode, sum);
+      return sum;
     }
   }
 
-  return getPathsOut('svr', []).filter((path) => path.includes(nodesToGoThrough[0]) && path.includes(nodesToGoThrough[1])).length;
+  pathsOutCountMap = new Map<string, number>();
+  const svr_fft = getNumberPathsOut('svr', 'fft');
+  console.info('svr_fft', svr_fft);
+
+  pathsOutCountMap = new Map<string, number>();
+  const fft_dac = getNumberPathsOut('fft', 'dac');
+  console.info('fft_dac', fft_dac);
+
+  pathsOutCountMap = new Map<string, number>();
+  const dac_out = getNumberPathsOut('dac', 'out');
+  console.info('dac_out', dac_out);
+
+  return svr_fft * fft_dac * dac_out;
 }
 
 function main(): void {
